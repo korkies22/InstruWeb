@@ -1,6 +1,10 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
+    <img
+      alt="Meme random"
+      class="meme"
+      src="https://media.giphy.com/media/mSAE6qMdL7MxG/giphy.gif"
+    />
     <HelloWorld msg="Welcome to Your Vue.js App" />
   </div>
 </template>
@@ -16,3 +20,13 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.meme {
+  max-width: 100%;
+}
+
+.home {
+  padding-bottom: 5rem;
+}
+</style>
