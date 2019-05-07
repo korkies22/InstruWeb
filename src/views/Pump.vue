@@ -2,7 +2,7 @@
   <div class="pump">
     <div
       class="pump__button"
-      @click="toggleEncender()"
+      @click="enviarMensaje()"
       :class="encendido && 'pump__on'"
     >
       <img alt="Icono" class="icon" :src="getImgUrl" />
@@ -14,13 +14,49 @@
 </template>
 
 <script>
+import io from "socket.io-client";
 export default {
   data() {
-    return { encendido: false };
+    return { encendido: false, socket: null };
   },
   methods: {
-    toggleEncender() {
-      this.encendido = !this.encendido;
+    setEncender(valor) {
+      this.encendido = valor;
+    },
+    initWebsocket() {
+      /* eslint-disable */
+      var ws = io("https://instrumentacionwifi.herokuapp.com", {
+        autoConnect: true
+      });
+      var vm = this;
+      this.socket = ws;
+      ws.on("connect", () => {
+        console.log("Eureka");
+      });
+      ws.on("disconnect", () => {
+        console.log("RIP conn");
+      });
+      // event emmited when receiving message
+      ws.on("message", function(ev) {
+        console.log(ev);
+        if (ev.startsWith("RES")) {
+          vm.handleRes(ev);
+        }
+      });
+    },
+    handleRes(ev) {
+      const separador = ":::";
+      let value = ev.split(separador)[1];
+      if (value === "ON") {
+        this.setEncender(true);
+      } else {
+        this.setEncender(false);
+      }
+    },
+    enviarMensaje() {
+      if (!this.socket) return;
+      let mensaje= this.encendido? 'OFF': 'ON';
+      this.socket.emit('message',mensaje);
     }
   },
   computed: {
@@ -32,6 +68,12 @@ export default {
       var images = require.context("../assets/", false, /\.svg$/);
       return images("./" + pet + ".svg");
     }
+  },
+  mounted() {
+    this.initWebsocket();
+  },
+  destroyed() {
+    if (this.socket) this.socket.disconnect();
   }
 };
 </script>

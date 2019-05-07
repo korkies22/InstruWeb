@@ -55,6 +55,7 @@
 </template>
 
 <script>
+import io from "socket.io-client";
 export default {
   data() {
     return {
@@ -63,8 +64,63 @@ export default {
       tBMP: 21,
       pBMP: 714.4,
       hDHT: 61,
-      hFC28: 50
+      hFC28: 50,
+      socket: null
     };
+  },
+  methods: {
+    initWebsocket() {
+      /* eslint-disable */
+      var ws = io("https://instrumentacionwifi.herokuapp.com", {
+        autoConnect: true
+      });
+      var vm = this;
+      this.socket = ws;
+      ws.on("connect", () => {
+        console.log("Eureka");
+      });
+      ws.on("disconnect", () => {
+        console.log("RIP conn");
+      });
+      // event emmited when receiving message
+      ws.on("message", function(ev) {
+        console.log(ev);
+        if (ev.startsWith("INFO")) {
+          vm.handleRes(ev);
+        }
+      });
+    },
+    handleRes(ev) {
+      const separador = ":::";
+      let type = ev.split(separador)[1];
+      let value = ev.split(separador)[2];
+      switch (type) {
+        case "TLM35":
+          this.tLM35 = value;
+          break;
+        case "TDHT11":
+          this.tDHT = value;
+          break;
+        case "TBMP180":
+          this.tBMP = value;
+          break;
+        case "HFC28":
+          this.hFC28 = value;
+          break;
+        case "HDHT11":
+          this.hDHT = value;
+          break;
+        case "PBMP180":
+          this.pBMP = value;
+          break;
+      }
+    }
+  },
+  mounted() {
+    this.initWebsocket();
+  },
+  destroyed() {
+    if (this.socket) this.socket.disconnect();
   },
   computed: {
     meanTemperature() {
