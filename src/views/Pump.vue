@@ -14,7 +14,6 @@
 </template>
 
 <script>
-import io from "socket.io-client";
 export default {
   data() {
     return { encendido: false, socket: null };
@@ -25,23 +24,23 @@ export default {
     },
     initWebsocket() {
       /* eslint-disable */
-      var ws = io("https://instrumentacionwifi.herokuapp.com", {
-        autoConnect: true
-      });
+      const ws = new WebSocket("wss://instrumentacionwifi.herokuapp.com");
+
       var vm = this;
       this.socket = ws;
-      ws.on("connect", () => {
-        console.log("Eureka");
+      // Listen for messages
+      // Connection opened
+      ws.addEventListener("closed", function(event) {
+        console.log("Disconnected");
+        ws = new WebSocket("wss://instrumentacionwifi.herokuapp.com");
       });
-      ws.on("disconnect", () => {
-        console.log("RIP conn");
+      // Connection opened
+      ws.addEventListener("open", function(event) {
+        console.log("Connected");
       });
-      // event emmited when receiving message
-      ws.on("message", function(ev) {
-        console.log(ev);
-        if (ev.startsWith("RES")) {
-          vm.handleRes(ev);
-        }
+      ws.addEventListener("message", function(event) {
+        console.log(event);
+        vm.handleRes(event.data);
       });
     },
     handleRes(ev) {
@@ -49,14 +48,17 @@ export default {
       let value = ev.split(separador)[1];
       if (value === "ON") {
         this.setEncender(true);
-      } else {
+      } else if(value === "OFF"){
         this.setEncender(false);
+      }
+      else{
+        console.log('Nada',ev)
       }
     },
     enviarMensaje() {
       if (!this.socket) return;
-      let mensaje= this.encendido? 'OFF': 'ON';
-      this.socket.emit('message',mensaje);
+      let mensaje = this.encendido ? "OFF" : "ON";
+      this.socket.send(mensaje);
     }
   },
   computed: {
@@ -73,7 +75,7 @@ export default {
     this.initWebsocket();
   },
   destroyed() {
-    if (this.socket) this.socket.disconnect();
+    if (this.socket) this.socket.close();
   }
 };
 </script>

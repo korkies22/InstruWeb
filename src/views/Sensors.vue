@@ -55,7 +55,6 @@
 </template>
 
 <script>
-import io from "socket.io-client";
 export default {
   data() {
     return {
@@ -71,23 +70,23 @@ export default {
   methods: {
     initWebsocket() {
       /* eslint-disable */
-      var ws = io("https://instrumentacionwifi.herokuapp.com", {
-        autoConnect: true
-      });
+      const ws = new WebSocket("wss://instrumentacionwifi.herokuapp.com");
+
       var vm = this;
       this.socket = ws;
-      ws.on("connect", () => {
-        console.log("Eureka");
+      // Listen for messages
+      // Connection opened
+      ws.addEventListener("closed", function(event) {
+        console.log("Disconnected");
+        ws = new WebSocket("wss://instrumentacionwifi.herokuapp.com");
       });
-      ws.on("disconnect", () => {
-        console.log("RIP conn");
+      // Connection opened
+      ws.addEventListener("open", function(event) {
+        console.log("Connected");
       });
-      // event emmited when receiving message
-      ws.on("message", function(ev) {
-        console.log(ev);
-        if (ev.startsWith("INFO")) {
-          vm.handleRes(ev);
-        }
+      ws.addEventListener("message", function(event) {
+        console.log(event);
+        vm.handleRes(event.data);
       });
     },
     handleRes(ev) {
@@ -113,6 +112,8 @@ export default {
         case "PBMP180":
           this.pBMP = value;
           break;
+        default:
+          console.log('No identificado',ev)
       }
     }
   },
@@ -120,7 +121,7 @@ export default {
     this.initWebsocket();
   },
   destroyed() {
-    if (this.socket) this.socket.disconnect();
+    if (this.socket) this.socket.close();
   },
   computed: {
     meanTemperature() {
