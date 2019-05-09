@@ -56,9 +56,10 @@ export default {
       }
     },
     enviarMensaje() {
+      const CANDENA_INICIAL="REQ:::"
       if (!this.socket) return;
       let mensaje = this.encendido ? "OFF" : "ON";
-      this.socket.send(mensaje);
+      this.socket.send(CADENA_INICIAL+mensaje);
     }
   },
   computed: {
