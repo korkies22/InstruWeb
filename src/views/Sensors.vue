@@ -41,6 +41,11 @@
         <td>{{ hFC28.toFixed(2) }}</td>
       </tr>
       <tr>
+        <td>FC-28</td>
+        <td>Humedad en suelo (Lectura análoga)</td>
+        <td>{{ hAFC28.toFixed(2) }}</td>
+      </tr>
+      <tr>
         <td>DTH11</td>
         <td>Humedad relativa (%)</td>
         <td>{{ hDHT.toFixed(2) }}</td>
@@ -64,6 +69,7 @@ export default {
       pBMP: 714.4,
       hDHT: 61,
       hFC28: 50,
+      hAFC28: 0,
       socket: null
     };
   },
@@ -92,7 +98,7 @@ export default {
     handleRes(ev) {
       const separador = ":::";
       let type = ev.split(separador)[1];
-      let value = ev.split(separador)[2];
+      let value = parseFloat(ev.split(separador)[2]);
       switch (type) {
         case "TLM35":
           this.tLM35 = value;
@@ -112,8 +118,11 @@ export default {
         case "PBMP180":
           this.pBMP = value;
           break;
+        case "HAFC28":
+          this.hAFC28 = value;
+          break;
         default:
-          console.log('No identificado',ev)
+          console.log("No identificado", ev);
       }
     }
   },

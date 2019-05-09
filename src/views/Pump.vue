@@ -39,24 +39,25 @@ export default {
         console.log("Connected");
       });
       ws.addEventListener("message", function(event) {
-        console.log(event);
+        //console.log(event);
         vm.handleRes(event.data);
       });
     },
     handleRes(ev) {
       const separador = ":::";
       let value = ev.split(separador)[1];
-      if (value === "ON") {
+      if(!value) return;
+      if (value.trim() === "ON") {
         this.setEncender(true);
-      } else if(value === "OFF"){
+      } else if(value.trim() === "OFF"){
         this.setEncender(false);
       }
-      else{
-        console.log('Nada',ev)
+      else if(ev.startsWith('RES')){
+        console.log('Nada',value)
       }
     },
     enviarMensaje() {
-      const CANDENA_INICIAL="REQ:::"
+      const CADENA_INICIAL="REQ:::"
       if (!this.socket) return;
       let mensaje = this.encendido ? "OFF" : "ON";
       this.socket.send(CADENA_INICIAL+mensaje);
